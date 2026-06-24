@@ -500,7 +500,15 @@
       line-height: 1;
       height: 29px;
       box-sizing: border-box;
+      cursor: pointer;
+      transition: background 0.2s;
     }
+    .header-agent-pill.away {
+      background: #F6DE16;
+      color: #1D2D3E;
+      border-color: #E5CC00;
+    }
+    .header-agent-pill:hover { opacity: 0.85; }
 
     /* ── SETTINGS BUTTON (header) ── */
     .exc-btn {
@@ -846,7 +854,18 @@
     .as-status-card.active-card {
       background: #2E7D32;
       border-color: #2E7D32;
+      cursor: pointer;
+      transition: background 0.2s;
     }
+    .as-status-card.active-card.away-card {
+      background: #F6DE16;
+      border-color: #F6DE16;
+    }
+    .as-status-card.active-card.away-card .as-status-header,
+    .as-status-card.active-card.away-card .as-status-agent,
+    .as-status-card.active-card.away-card .as-status-shift,
+    .as-status-card.active-card.away-card .as-status-next { color: #1D2D3E; }
+    .as-status-card.active-card:hover { opacity: 0.9; }
     .as-status-card.active-card .as-status-header,
     .as-status-card.active-card .as-status-agent,
     .as-status-card.active-card .as-status-shift,
@@ -960,6 +979,11 @@
     body.dark .as-section-title { color: #E0E0E0; }
     body.dark .as-status-card { background: #1e1e1e; border-color: #333; }
     body.dark .as-status-card.active-card { background: #2E7D32; border-color: #2E7D32; }
+    body.dark .as-status-card.active-card.away-card { background: #F6DE16; border-color: #F6DE16; }
+    body.dark .as-status-card.active-card.away-card .as-status-header,
+    body.dark .as-status-card.active-card.away-card .as-status-agent,
+    body.dark .as-status-card.active-card.away-card .as-status-shift,
+    body.dark .as-status-card.active-card.away-card .as-status-next { color: #1D2D3E; }
     body.dark .as-status-header { color: #9E9E9E; }
     body.dark .as-status-agent { color: #E0E0E0; }
     body.dark .as-status-shift { color: #9E9E9E; }
@@ -1042,6 +1066,10 @@
     .sim-shift-row.row-active .sim-shift-label strong { color: #fff; }
     .sim-shift-row.row-active .sim-shift-time { color: rgba(255,255,255,0.75); }
     .sim-shift-row.row-active .agent-pill { background: rgba(255,255,255,0.2); color: #fff; }
+    .sim-shift-row.row-away { background: #F6DE16 !important; border-color: #E5CC00 !important; }
+    .sim-shift-row.row-away .sim-shift-label strong { color: #1D2D3E !important; }
+    .sim-shift-row.row-away .sim-shift-time { color: #333 !important; }
+    .sim-shift-row.row-away .agent-pill { background: rgba(0,0,0,0.12) !important; color: #1D2D3E !important; }
     .sim-row-exception { background: #FFF8E1; border-color: #FFE082; }
     .sim-shift-label strong { display: block; font-size: 13px; color: #1D2D3E; }
     .sim-shift-label { min-width: 100px; }
@@ -1285,6 +1313,10 @@
     body.dark .sim-shift-row.row-active .sim-shift-label strong { color: #fff; }
     body.dark .sim-shift-row.row-active .sim-shift-time { color: rgba(255,255,255,0.75); }
     body.dark .sim-shift-row.row-active .agent-pill { background: rgba(255,255,255,0.2); color: #fff; }
+    body.dark .sim-shift-row.row-away { background: #F6DE16 !important; border-color: #E5CC00 !important; }
+    body.dark .sim-shift-row.row-away .sim-shift-label strong { color: #1D2D3E !important; }
+    body.dark .sim-shift-row.row-away .sim-shift-time { color: #333 !important; }
+    body.dark .sim-shift-row.row-away .agent-pill { background: rgba(0,0,0,0.12) !important; color: #1D2D3E !important; }
     body.dark .sim-row-exception { background: #3E2723; border-color: #5D4037; }
     body.dark .sim-shift-label strong { color: #E0E0E0; }
     body.dark .sim-shift-time { color: #9E9E9E; }
@@ -1432,7 +1464,7 @@
     .dash-card-body { }
 
     .dash-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .dash-bar-label { width: 140px; font-size: 12px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+    .dash-bar-label { width: 200px; font-size: 12px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
     .dash-bar-track { flex: 1; height: 22px; background: #F0F2F5; border-radius: 4px; position: relative; overflow: hidden; }
     .dash-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; display: flex; align-items: center; padding-left: 8px; }
     .dash-bar-val { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
@@ -1709,6 +1741,11 @@
           <input type="date" id="dash-from" style="display:none" onchange="renderDashboard()">
           <input type="date" id="dash-to" style="display:none" onchange="renderDashboard()">
         </div>
+        <div class="dash-chart-toggle" id="dash-chat-filter">
+          <button class="dash-toggle-btn active" id="dfil-total" onclick="setDashChatFilter('total')">Total</button>
+          <button class="dash-toggle-btn" id="dfil-partner" onclick="setDashChatFilter('partner')">Partner</button>
+          <button class="dash-toggle-btn" id="dfil-internal" onclick="setDashChatFilter('internal')">Internal</button>
+        </div>
         <div class="dash-chart-toggle">
           <button class="dash-toggle-btn active" id="dtog-bar" onclick="setDashChartType('bar')" title="Bar Charts">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="6" width="3" height="7"/><rect x="5.5" y="3" width="3" height="10"/><rect x="10" y="1" width="3" height="12"/></svg>
@@ -1753,7 +1790,7 @@
     <!-- CHARTS -->
     <div class="dash-grid">
       <div class="dash-card dash-card-half">
-        <div class="dash-card-title">Chats by Partner Region</div>
+        <div class="dash-card-title" id="dash-title-region">Chats by Region</div>
         <div class="dash-card-body" id="dash-chart-region"></div>
       </div>
       <div class="dash-card dash-card-half">
@@ -1765,7 +1802,7 @@
         <div class="dash-card-body" id="dash-chart-category"></div>
       </div>
       <div class="dash-card dash-card-full">
-        <div class="dash-card-title">Chats by Support Region</div>
+        <div class="dash-card-title" id="dash-title-support-region">Chats by Support Region</div>
         <div class="dash-card-body" id="dash-chart-support-region"></div>
       </div>
 
@@ -2428,12 +2465,19 @@ function toggleExcRepMode() {
 
 // ── Render per-day replacement inputs ──
 function renderExcDayReplacements() {
+  const mode = document.querySelector('input[name="exc-rep-mode"]:checked')?.value || 'single';
+  const container = document.getElementById('exc-day-replacements');
+  const placeholder = document.getElementById('exc-day-placeholder');
+  // In single mode, hide per-day fields entirely
+  if (mode === 'single') {
+    container.style.display = 'none';
+    placeholder.style.display = 'none';
+    return;
+  }
   const start = document.getElementById('exc-start').value;
   const end   = document.getElementById('exc-end').value;
   const regionKey = document.getElementById('exc-region').value;
   const agentName = document.getElementById('exc-agent').value.trim().toLowerCase();
-  const container = document.getElementById('exc-day-replacements');
-  const placeholder = document.getElementById('exc-day-placeholder');
   if (!start || !end || end < start) {
     container.style.display = 'none';
     placeholder.textContent = 'Select dates above to assign replacements per day.';
@@ -2765,6 +2809,47 @@ function updateSummary() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════
+// AGENT AWAY STATUS (toggle between on-shift and away/lunch)
+// ═══════════════════════════════════════════════════════════
+function loadAwayAgents() {
+  try { const s = localStorage.getItem('psh_away_agents'); if (s) return JSON.parse(s); } catch(e) {}
+  return [];
+}
+function saveAwayAgents(arr) {
+  try { localStorage.setItem('psh_away_agents', JSON.stringify(arr)); } catch(e) {}
+}
+function toggleAgentAway(agentName) {
+  let away = loadAwayAgents();
+  const key = agentName.toLowerCase();
+  if (away.includes(key)) {
+    away = away.filter(a => a !== key);
+  } else {
+    away.push(key);
+  }
+  saveAwayAgents(away);
+  renderHeaderAgents();
+  renderStatusCards();
+  renderScheduleCards();
+}
+function toggleShiftAway(agentNames) {
+  let away = loadAwayAgents();
+  const keys = agentNames.map(n => n.toLowerCase());
+  const allAway = keys.every(k => away.includes(k));
+  if (allAway) {
+    away = away.filter(a => !keys.includes(a));
+  } else {
+    keys.forEach(k => { if (!away.includes(k)) away.push(k); });
+  }
+  saveAwayAgents(away);
+  renderHeaderAgents();
+  renderStatusCards();
+  renderScheduleCards();
+}
+function isAgentAway(agentName) {
+  return loadAwayAgents().includes(agentName.toLowerCase());
+}
+
 function renderHeaderAgents() {
   const container = document.getElementById('header-agents');
   if (!container) return;
@@ -2773,9 +2858,12 @@ function renderHeaderAgents() {
     const { status, active } = getActiveShifts(r);
     if (status === 'on' && active && active.length > 0) {
       active.forEach(shift => {
-        shift.ags.forEach(name => {
+        shift.ags.forEach(ag => {
+          const name = ag.startsWith('__rep__') ? ag.slice(7) : ag;
           const firstName = name.split(' ')[0];
-          pills.push(`<span class="header-agent-pill">${firstName}</span>`);
+          const away = isAgentAway(name);
+          const cls = away ? 'header-agent-pill away' : 'header-agent-pill';
+          pills.push(`<span class="${cls}" onclick="toggleAgentAway('${name.replace(/'/g, "\\'")}')" title="${away ? 'Away — click to set back on shift' : 'On shift — click to mark as away'}">${firstName}</span>`);
         });
       });
     }
@@ -2812,14 +2900,21 @@ function renderStatusCards() {
     const { status, active, info, dateStr } = getActiveShifts(region);
     if (status === 'on' && active.length > 0) {
       const shift = active[0];
-      const agents = shift.ags.map(ag => ag.startsWith('__rep__') ? ag.slice(7) : ag).join(', ');
+      const agentNames = shift.ags.map(ag => ag.startsWith('__rep__') ? ag.slice(7) : ag);
+      const agents = agentNames.join(', ');
+      // Check if the primary agent is away
+      const primaryAgent = agentNames[0] || '';
+      const anyAway = agentNames.some(a => isAgentAway(a));
+      const awayCls = anyAway ? ' away-card' : '';
+      const statusLabel = anyAway ? 'Away' : 'On shift now';
       const nxt = nextShift(region, info, dateStr);
       let nextHTML = '';
       if (nxt) {
         nextHTML = `<div class="as-status-next">Next: ${nxt.ags.map(ag => ag.startsWith('__rep__') ? ag.slice(7) : ag).join(', ')} · ${nxt.start}</div>`;
       }
-      return `<div class="as-status-card active-card">
-        <div class="as-status-header"><span class="flag">${region.flag}</span> On shift now</div>
+      const shiftAgentsJSON = JSON.stringify(agentNames).replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+      return `<div class="as-status-card active-card${awayCls}" onclick="toggleShiftAway(JSON.parse(this.dataset.agents))" data-agents="${shiftAgentsJSON}">
+        <div class="as-status-header"><span class="flag">${region.flag}</span> ${statusLabel}</div>
         <div class="as-status-agent">${agents}</div>
         <div class="as-status-shift">${shift.name} · ${pad(shift.start[0])}:${pad(shift.start[1])} – ${pad(shift.end[0])}:${pad(shift.end[1])}</div>
         ${nextHTML}
@@ -2896,7 +2991,16 @@ function renderScheduleCards() {
       const tzAbbr = (SHIFT_TZ_OPTIONS.find(o => o.value === shTz) || {}).label;
       const tzShort = tzAbbr ? tzAbbr.split(' ')[0] : '';
       
-      rowsHTML += `<div class="sim-shift-row${isActive ? ' row-active' : ''}">
+      // Check if agents in this active shift are away
+      let isAway = false;
+      if (isActive && agents.length > 0) {
+        const cleanNames = agents.map(a => a.startsWith('__rep__') ? a.slice(7) : a);
+        isAway = cleanNames.some(n => isAgentAway(n));
+      }
+      
+      const rowCls = isActive ? (isAway ? ' row-active row-away' : ' row-active') : '';
+      
+      rowsHTML += `<div class="sim-shift-row${rowCls}">
         <div class="sim-shift-label">
           <strong>${shift.name}</strong>
           <div class="sim-shift-time">${pad(shift.start[0])}:${pad(shift.start[1])} – ${pad(shift.end[0])}:${pad(shift.end[1])}${tzShort ? ' ' + tzShort : ''}</div>
@@ -3802,7 +3906,7 @@ function exportDashboardPPTX() {
 
   // ─── HELPER: Add geometric component blocks ───
   function addComponentBlocks(slide, startX, startY) {
-    const bw = 2.1, bh = 1.8;
+    const bw = 2.1, bh = 2.5;
     slide.addShape(pres.ShapeType.rect, { x: startX, y: startY, w: bw, h: bh, fill: { color: MANGO } });
     slide.addShape(pres.ShapeType.rect, { x: startX + bw, y: startY, w: bw, h: bh, fill: { color: B6 } });
     slide.addShape(pres.ShapeType.rect, { x: startX + bw*2, y: startY, w: bw, h: bh, fill: { color: B2 } });
@@ -3864,6 +3968,11 @@ function exportDashboardPPTX() {
 
   // ─── DATA PREP ───
   const total = data.length;
+  const partnerData = data.filter(e => e.requestor === 'Partner');
+  const internalData = data.filter(e => e.requestor === 'SAP Internal');
+  const partnerCount = partnerData.length;
+  const internalCount = internalData.length;
+
   const regions = countBy(data, 'partnerRegion');
   const resolutions = countBy(data, 'resolution');
   const supportRegions = countBy(data, 'supportRegion');
@@ -3877,95 +3986,147 @@ function exportDashboardPPTX() {
   data.forEach(e => { const m = (e.date || '').substring(0, 7); if (m) { monthMap[m] = (monthMap[m]||0)+1; } });
   const months = Object.keys(monthMap).sort();
 
+  // Determine export mode from filter
+  const exportMode = dashChatFilter; // 'total', 'partner', or 'internal'
+  const titleSuffix = exportMode === 'partner' ? ' (Partner Chats)' : exportMode === 'internal' ? ' (Internal Chats)' : '';
+
   // ═══ SLIDE 1: Title ═══
-  addTitleSlide('Partner Services Hub\nLive Chat Dashboard Report', periodLabel + ' | Generated ' + exportDate);
+  addTitleSlide('Partner Services Hub\nLive Chat Dashboard Report' + titleSuffix, periodLabel + ' | Generated ' + exportDate);
 
   // ═══ SLIDE 2: KPI Summary ═══
   const kpiSlide = addContentSlide('Key Performance Indicators');
-  const kpis = [
-    { label: 'Total Chats', value: total.toString() },
-    { label: 'Partner Regions', value: regions.length.toString() },
-    { label: 'Active Specialists', value: new Set(data.map(e => e.specialist)).size.toString() }
-  ];
-  kpis.forEach((kpi, i) => {
-    const x = 1.5 + i * 3.8;
-    kpiSlide.addShape(pres.ShapeType.roundRect, { x, y: 1.8, w: 3.2, h: 2.2, fill: { color: 'F0F7FF' }, line: { color: B4, width: 1 }, rectRadius: 0.05 });
-    kpiSlide.addText(kpi.value, { x, y: 2.0, w: 3.2, h: 1.2, fontSize: 36, bold: true, color: B7, align: 'center', fontFace: '72 Brand' });
-    kpiSlide.addText(kpi.label, { x, y: 3.2, w: 3.2, h: 0.5, fontSize: 11, color: '475569', align: 'center', fontFace: '72 Brand' });
-  });
+  if (exportMode === 'total') {
+    const kpis = [
+      { label: 'Total Chats', value: total.toString() },
+      { label: 'Partner Chats', value: partnerCount.toString() },
+      { label: 'Internal Chats', value: internalCount.toString() },
+      { label: 'Active Specialists', value: new Set(data.map(e => e.specialist)).size.toString() }
+    ];
+    const cardW = 2.6, gap = 0.4;
+    const totalW = kpis.length * cardW + (kpis.length - 1) * gap;
+    const startX = (13.33 - totalW) / 2;
+    kpis.forEach((kpi, i) => {
+      const x = startX + i * (cardW + gap);
+      kpiSlide.addShape(pres.ShapeType.roundRect, { x, y: 1.8, w: cardW, h: 2.2, fill: { color: 'F0F7FF' }, line: { color: B4, width: 1 }, rectRadius: 0.05 });
+      kpiSlide.addText(kpi.value, { x, y: 2.0, w: cardW, h: 1.2, fontSize: 34, bold: true, color: B7, align: 'center', fontFace: '72 Brand' });
+      kpiSlide.addText(kpi.label, { x, y: 3.2, w: cardW, h: 0.5, fontSize: 10, color: '475569', align: 'center', fontFace: '72 Brand' });
+    });
+  } else {
+    const filterTotal = exportMode === 'partner' ? partnerCount : internalCount;
+    const filteredData = exportMode === 'partner' ? partnerData : internalData;
+    const filteredRegions = countBy(filteredData, 'partnerRegion');
+    const kpis = [
+      { label: exportMode === 'partner' ? 'Partner Chats' : 'Internal Chats', value: filterTotal.toString() },
+      { label: 'Regions', value: filteredRegions.length.toString() },
+      { label: 'Active Specialists', value: new Set(filteredData.map(e => e.specialist)).size.toString() }
+    ];
+    const cardW = 3.2, gap = 0.5;
+    const totalW = kpis.length * cardW + (kpis.length - 1) * gap;
+    const startX = (13.33 - totalW) / 2;
+    kpis.forEach((kpi, i) => {
+      const x = startX + i * (cardW + gap);
+      kpiSlide.addShape(pres.ShapeType.roundRect, { x, y: 1.8, w: cardW, h: 2.2, fill: { color: 'F0F7FF' }, line: { color: B4, width: 1 }, rectRadius: 0.05 });
+      kpiSlide.addText(kpi.value, { x, y: 2.0, w: cardW, h: 1.2, fontSize: 36, bold: true, color: B7, align: 'center', fontFace: '72 Brand' });
+      kpiSlide.addText(kpi.label, { x, y: 3.2, w: cardW, h: 0.5, fontSize: 11, color: '475569', align: 'center', fontFace: '72 Brand' });
+    });
+  }
   kpiSlide.addText('Period: ' + periodLabel + '  |  Export Date: ' + exportDate, { x: 0.6, y: 4.5, w: 10, h: 0.4, fontSize: 10, color: '6A7A8A', fontFace: '72 Brand' });
 
-  // ═══ SLIDE 3+: Distribution ═══
-  addDividerSlide('Distribution\nAnalysis');
+  // ═══ DISTRIBUTION ANALYSIS ═══
+  // Helper to add distribution slides for a given dataset
+  function addDistributionSlides(sliceData, sliceTotal, label) {
+    const sliceRegions = countBy(sliceData, 'partnerRegion');
+    const sliceResolutions = countBy(sliceData, 'resolution');
+    const sliceSupportRegions = countBy(sliceData, 'supportRegion');
+    const sliceTopics = countBy(sliceData, 'topic');
 
-  const regionSlide = addContentSlide('Chats by Partner Region');
-  regionSlide.addChart(pres.charts.PIE, [{ name: 'Region', labels: regions.map(e => e[0]), values: regions.map(e => e[1]) }], {
-    x: 0.5, y: 1.2, w: 6, h: 5.5, showLegend: true, legendPos: 'b', showPercent: true, legendFontSize: 10,
-    legendFontFace: '72 Brand', dataLabelColor: 'FFFFFF', dataLabelFontBold: true, dataLabelFontFace: '72 Brand', dataLabelFontSize: 11,
-    chartColors: CHART_COLORS.slice(0, regions.length)
-  });
-  const regTblData = [
-    [{ text: 'Region', options: { bold: true, color: WHITE, fill: { color: B11 } } },
-     { text: 'Chats', options: { bold: true, color: WHITE, fill: { color: B11 } } },
-     { text: '%', options: { bold: true, color: WHITE, fill: { color: B11 } } }]
-  ];
-  regions.forEach(([l, c], idx) => {
-    const rowFill = idx % 2 === 0 ? 'F8FAFB' : WHITE;
-    regTblData.push([
-      { text: l, options: { fill: { color: rowFill } } },
-      { text: c.toString(), options: { fill: { color: rowFill } } },
-      { text: (c/total*100).toFixed(1) + '%', options: { fill: { color: rowFill } } }
-    ]);
-  });
-  regionSlide.addTable(regTblData, { x: 7, y: 1.8, w: 5.5, fontSize: 10, fontFace: '72 Brand', border: { type: 'solid', color: 'E0E2E5', pt: 0.5 }, colW: [2.2, 1.5, 1.8], autoPage: false });
+    const regionSlide = addContentSlide('Chats by Region' + (label ? ' — ' + label : ''));
+    regionSlide.addChart(pres.charts.PIE, [{ name: 'Region', labels: sliceRegions.map(e => e[0]), values: sliceRegions.map(e => e[1]) }], {
+      x: 0.5, y: 1.2, w: 6, h: 5.5, showLegend: true, legendPos: 'b', showPercent: true, legendFontSize: 10,
+      legendFontFace: '72 Brand', dataLabelColor: 'FFFFFF', dataLabelFontBold: true, dataLabelFontFace: '72 Brand', dataLabelFontSize: 11,
+      chartColors: CHART_COLORS.slice(0, sliceRegions.length)
+    });
+    const regTblData = [
+      [{ text: 'Region', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+       { text: 'Chats', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+       { text: '%', options: { bold: true, color: WHITE, fill: { color: B11 } } }]
+    ];
+    sliceRegions.forEach(([l, c], idx) => {
+      const rowFill = idx % 2 === 0 ? 'F8FAFB' : WHITE;
+      regTblData.push([
+        { text: l, options: { fill: { color: rowFill } } },
+        { text: c.toString(), options: { fill: { color: rowFill } } },
+        { text: (c/sliceTotal*100).toFixed(1) + '%', options: { fill: { color: rowFill } } }
+      ]);
+    });
+    regionSlide.addTable(regTblData, { x: 7, y: 1.8, w: 5.5, fontSize: 10, fontFace: '72 Brand', border: { type: 'solid', color: 'E0E2E5', pt: 0.5 }, colW: [2.2, 1.5, 1.8], autoPage: false });
 
-  const resSlide = addContentSlide('Resolution Status');
-  resSlide.addChart(pres.charts.PIE, [{ name: 'Resolution', labels: resolutions.map(e => e[0]), values: resolutions.map(e => e[1]) }], {
-    x: 0.5, y: 1.2, w: 6, h: 5.5, showLegend: true, legendPos: 'b', showPercent: true, legendFontSize: 9,
-    legendFontFace: '72 Brand', dataLabelColor: 'FFFFFF', dataLabelFontBold: true, dataLabelFontFace: '72 Brand', dataLabelFontSize: 11,
-    chartColors: CHART_COLORS.slice(0, resolutions.length)
-  });
-  const resTblData = [
-    [{ text: 'Resolution', options: { bold: true, color: WHITE, fill: { color: B11 } } },
-     { text: 'Count', options: { bold: true, color: WHITE, fill: { color: B11 } } },
-     { text: '%', options: { bold: true, color: WHITE, fill: { color: B11 } } }]
-  ];
-  resolutions.forEach(([l, c], idx) => {
-    const rowFill = idx % 2 === 0 ? 'F8FAFB' : WHITE;
-    resTblData.push([
-      { text: l, options: { fill: { color: rowFill } } },
-      { text: c.toString(), options: { fill: { color: rowFill } } },
-      { text: (c/total*100).toFixed(1) + '%', options: { fill: { color: rowFill } } }
-    ]);
-  });
-  resSlide.addTable(resTblData, { x: 7, y: 1.8, w: 5.8, fontSize: 10, fontFace: '72 Brand', border: { type: 'solid', color: 'E0E2E5', pt: 0.5 }, colW: [3.2, 1.1, 1.5], autoPage: false });
+    const resSlide = addContentSlide('Resolution Status' + (label ? ' — ' + label : ''));
+    resSlide.addChart(pres.charts.PIE, [{ name: 'Resolution', labels: sliceResolutions.map(e => e[0]), values: sliceResolutions.map(e => e[1]) }], {
+      x: 0.5, y: 1.2, w: 6, h: 5.5, showLegend: true, legendPos: 'b', showPercent: true, legendFontSize: 9,
+      legendFontFace: '72 Brand', dataLabelColor: 'FFFFFF', dataLabelFontBold: true, dataLabelFontFace: '72 Brand', dataLabelFontSize: 11,
+      chartColors: CHART_COLORS.slice(0, sliceResolutions.length)
+    });
+    const resTblData = [
+      [{ text: 'Resolution', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+       { text: 'Count', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+       { text: '%', options: { bold: true, color: WHITE, fill: { color: B11 } } }]
+    ];
+    sliceResolutions.forEach(([l, c], idx) => {
+      const rowFill = idx % 2 === 0 ? 'F8FAFB' : WHITE;
+      resTblData.push([
+        { text: l, options: { fill: { color: rowFill } } },
+        { text: c.toString(), options: { fill: { color: rowFill } } },
+        { text: (c/sliceTotal*100).toFixed(1) + '%', options: { fill: { color: rowFill } } }
+      ]);
+    });
+    resSlide.addTable(resTblData, { x: 7, y: 1.8, w: 5.8, fontSize: 10, fontFace: '72 Brand', border: { type: 'solid', color: 'E0E2E5', pt: 0.5 }, colW: [3.2, 1.1, 1.5], autoPage: false });
 
-  const srSlide = addContentSlide('Chats by Support Region');
-  srSlide.addChart(pres.charts.PIE, [{ name: 'Support Region', labels: supportRegions.map(e => e[0]), values: supportRegions.map(e => e[1]) }], {
-    x: 0.5, y: 1.2, w: 6, h: 5.5, showLegend: true, legendPos: 'b', showPercent: true,
-    legendFontFace: '72 Brand', dataLabelColor: 'FFFFFF', dataLabelFontBold: true, dataLabelFontFace: '72 Brand', dataLabelFontSize: 11,
-    chartColors: CHART_COLORS.slice(0, supportRegions.length)
-  });
-  const srTblData = [
-    [{ text: 'Support Region', options: { bold: true, color: WHITE, fill: { color: B11 } } },
-     { text: 'Chats', options: { bold: true, color: WHITE, fill: { color: B11 } } },
-     { text: '%', options: { bold: true, color: WHITE, fill: { color: B11 } } }]
-  ];
-  supportRegions.forEach(([l, c], idx) => {
-    const rowFill = idx % 2 === 0 ? 'F8FAFB' : WHITE;
-    srTblData.push([
-      { text: l, options: { fill: { color: rowFill } } },
-      { text: c.toString(), options: { fill: { color: rowFill } } },
-      { text: (c/total*100).toFixed(1) + '%', options: { fill: { color: rowFill } } }
-    ]);
-  });
-  srSlide.addTable(srTblData, { x: 7, y: 1.8, w: 5.5, fontSize: 10, fontFace: '72 Brand', border: { type: 'solid', color: 'E0E2E5', pt: 0.5 }, colW: [2.5, 1.5, 1.5], autoPage: false });
+    const srSlide = addContentSlide('Chats by Support Region' + (label ? ' — ' + label : ''));
+    srSlide.addChart(pres.charts.PIE, [{ name: 'Support Region', labels: sliceSupportRegions.map(e => e[0]), values: sliceSupportRegions.map(e => e[1]) }], {
+      x: 0.5, y: 1.2, w: 6, h: 5.5, showLegend: true, legendPos: 'b', showPercent: true,
+      legendFontFace: '72 Brand', dataLabelColor: 'FFFFFF', dataLabelFontBold: true, dataLabelFontFace: '72 Brand', dataLabelFontSize: 11,
+      chartColors: CHART_COLORS.slice(0, sliceSupportRegions.length)
+    });
+    const srTblData = [
+      [{ text: 'Support Region', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+       { text: 'Chats', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+       { text: '%', options: { bold: true, color: WHITE, fill: { color: B11 } } }]
+    ];
+    sliceSupportRegions.forEach(([l, c], idx) => {
+      const rowFill = idx % 2 === 0 ? 'F8FAFB' : WHITE;
+      srTblData.push([
+        { text: l, options: { fill: { color: rowFill } } },
+        { text: c.toString(), options: { fill: { color: rowFill } } },
+        { text: (c/sliceTotal*100).toFixed(1) + '%', options: { fill: { color: rowFill } } }
+      ]);
+    });
+    srSlide.addTable(srTblData, { x: 7, y: 1.8, w: 5.5, fontSize: 10, fontFace: '72 Brand', border: { type: 'solid', color: 'E0E2E5', pt: 0.5 }, colW: [2.5, 1.5, 1.5], autoPage: false });
 
-  const catSlide = addContentSlide('Chat Categories');
-  catSlide.addChart(pres.charts.BAR, [{ name: 'Category', labels: topics.map(e => e[0]), values: topics.map(e => e[1]) }], {
-    x: 0.5, y: 1.2, w: 12.3, h: 5.5, showLegend: false, barDir: 'bar', catAxisOrientation: 'minMax',
-    chartColors: [B7], valGridLine: { color: 'E0E2E5' }, catAxisLabelFontSize: 9, catAxisLabelFontFace: '72 Brand', valAxisLabelFontFace: '72 Brand'
-  });
+    const catSlide = addContentSlide('Chat Categories' + (label ? ' — ' + label : ''));
+    catSlide.addChart(pres.charts.BAR, [{ name: 'Category', labels: sliceTopics.map(e => e[0]), values: sliceTopics.map(e => e[1]) }], {
+      x: 0.5, y: 1.2, w: 12.3, h: 5.5, showLegend: false, barDir: 'bar', catAxisOrientation: 'minMax',
+      chartColors: [B7], valGridLine: { color: 'E0E2E5' }, catAxisLabelFontSize: 9, catAxisLabelFontFace: '72 Brand', valAxisLabelFontFace: '72 Brand'
+    });
+  }
+
+  if (exportMode === 'total') {
+    // Total mode: separate distribution sections for Partner and Internal
+    if (partnerCount > 0) {
+      addDividerSlide('Distribution Analysis\nPartner Chats');
+      addDistributionSlides(partnerData, partnerCount, 'Partner');
+    }
+    if (internalCount > 0) {
+      addDividerSlide('Distribution Analysis\nInternal Chats');
+      addDistributionSlides(internalData, internalCount, 'Internal');
+    }
+  } else if (exportMode === 'partner') {
+    addDividerSlide('Distribution\nAnalysis');
+    addDistributionSlides(partnerData, partnerCount, '');
+  } else {
+    addDividerSlide('Distribution\nAnalysis');
+    addDistributionSlides(internalData, internalCount, '');
+  }
 
   // ═══ Monthly Trends ═══
   if (months.length > 1) {
@@ -4057,7 +4218,7 @@ function exportDashboardPPTX() {
       });
     }
     const detailTbl = [
-      [{ text: 'Partner Region', options: { bold: true, fill: { color: B11 }, color: WHITE } },
+      [{ text: 'Region', options: { bold: true, fill: { color: B11 }, color: WHITE } },
        { text: 'Chats', options: { bold: true, fill: { color: B11 }, color: WHITE } }]
     ];
     let detailIdx = 0;
@@ -4120,11 +4281,22 @@ function getDashData() {
   return data.filter(e => {
     if (fromDate && e.date < fromDate) return false;
     if (toDate && e.date > toDate) return false;
+    if (dashChatFilter === 'partner' && e.requestor !== 'Partner') return false;
+    if (dashChatFilter === 'internal' && e.requestor !== 'SAP Internal') return false;
     return true;
   });
 }
 
 let dashChartType = 'bar';
+let dashChatFilter = 'total';
+
+function setDashChatFilter(filter) {
+  dashChatFilter = filter;
+  document.getElementById('dfil-total').classList.toggle('active', filter === 'total');
+  document.getElementById('dfil-partner').classList.toggle('active', filter === 'partner');
+  document.getElementById('dfil-internal').classList.toggle('active', filter === 'internal');
+  renderDashboard();
+}
 
 function setDashChartType(type) {
   dashChartType = type;
@@ -4140,11 +4312,22 @@ function renderDashboard() {
   // KPIs
   const regions = {}; data.forEach(e => { regions[e.partnerRegion] = (regions[e.partnerRegion]||0)+1; });
 
+  const filterLabel = dashChatFilter === 'partner' ? 'Partner Chats' : dashChatFilter === 'internal' ? 'Internal Chats' : 'Total Chats';
+  const regionLabel = dashChatFilter === 'partner' ? 'Partner Regions' : 'Regions';
+
   document.getElementById('dash-kpis').innerHTML = `
-    <div class="dash-kpi"><div class="dash-kpi-value">${total}</div><div class="dash-kpi-label">Total Chats</div></div>
-    <div class="dash-kpi"><div class="dash-kpi-value">${Object.keys(regions).length}</div><div class="dash-kpi-label">Partner Regions</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-value">${total}</div><div class="dash-kpi-label">${filterLabel}</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-value">${Object.keys(regions).length}</div><div class="dash-kpi-label">${regionLabel}</div></div>
     <div class="dash-kpi"><div class="dash-kpi-value">${new Set(data.map(e=>e.specialist)).size}</div><div class="dash-kpi-label">Active Specialists</div></div>
   `;
+
+  // Update chart titles based on filter
+  const regionTitle = dashChatFilter === 'partner' ? 'Chats by Partner Region' : 'Chats by Region';
+  const supportTitle = 'Chats by Support Region';
+  const titleRegionEl = document.getElementById('dash-title-region');
+  const titleSupportEl = document.getElementById('dash-title-support-region');
+  if (titleRegionEl) titleRegionEl.textContent = regionTitle;
+  if (titleSupportEl) titleSupportEl.textContent = supportTitle;
 
   if (dashChartType === 'pie') {
     renderPieChart('dash-chart-region', countBy(data, 'partnerRegion'), total);
