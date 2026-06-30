@@ -1807,6 +1807,29 @@
       </div>
 
     </div>
+
+    <!-- WEEKDAY & SHIFT ANALYSIS -->
+    <div class="dash-trend-section" style="margin-top:24px;">
+      <div class="dash-card dash-card-full">
+        <div class="dash-card-title">Chat Volume by Weekday</div>
+        <div class="dash-trend-controls">
+          <select id="dash-weekday-region" onchange="renderWeekdayCharts()">
+            <option value="all">All Support Regions</option>
+            <option value="Americas">Americas</option>
+            <option value="EMEA">EMEA</option>
+            <option value="APJ_GCN">APJ/GCN</option>
+          </select>
+        </div>
+        <div class="dash-card-body" id="dash-chart-weekday"></div>
+      </div>
+    </div>
+    <div class="dash-grid" style="margin-top:16px;">
+      <div class="dash-card dash-card-full">
+        <div class="dash-card-title">Chat Volume by Shift & Weekday per Support Region</div>
+        <div class="dash-card-body" id="dash-chart-shift-weekday" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
   </div>
 </div><!-- /view-dashboard -->
   </div><!-- /subview-dashboard-charts -->
@@ -4170,6 +4193,105 @@ function exportDashboardPPTX() {
     }
   }
 
+  // ═══ Weekday & Shift Analysis ═══
+  addDividerSlide('Weekday & Shift\nAnalysis');
+
+  const DAYS_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const SHIFTS_ORDER = ['Morning','Afternoon','Night'];
+  const SUPPORT_REGIONS = ['Americas','EMEA','APJ_GCN'];
+
+  // --- Slide: Volume by Shift (all regions combined) ---
+  const shiftCounts = {};
+  SHIFTS_ORDER.forEach(s => shiftCounts[s] = 0);
+  data.forEach(e => { if (e.shift && shiftCounts[e.shift] !== undefined) shiftCounts[e.shift]++; });
+  const shiftEntries = SHIFTS_ORDER.map(s => [s, shiftCounts[s]]);
+
+  const shiftSlide = addContentSlide('Chat Volume by Shift — All Regions');
+  shiftSlide.addChart(pres.charts.BAR, [{ name: 'Chats', labels: shiftEntries.map(e => e[0]), values: shiftEntries.map(e => e[1]) }], {
+    x: 0.5, y: 1.3, w: 12, h: 5.5, showLegend: false, barDir: 'bar',
+    chartColors: [B7], valGridLine: { color: 'E0E2E5' }, catAxisLabelFontSize: 12, catAxisLabelFontFace: '72 Brand', valAxisLabelFontFace: '72 Brand',
+    showValue: true, dataLabelFontSize: 11, dataLabelFontFace: '72 Brand', dataLabelColor: '333333'
+  });
+
+  // --- Slides: Volume by Weekday — All + per region ---
+  const weekdaySliceConfigs = [
+    { label: 'All Regions', filterFn: () => true },
+    { label: 'Americas', filterFn: e => e.supportRegion === 'Americas' },
+    { label: 'EMEA', filterFn: e => e.supportRegion === 'EMEA' },
+    { label: 'APJ/GCN', filterFn: e => e.supportRegion === 'APJ_GCN' }
+  ];
+
+  weekdaySliceConfigs.forEach(cfg => {
+    const sliceData = data.filter(cfg.filterFn);
+    const dayCounts = {};
+    DAYS_ORDER.forEach(d => dayCounts[d] = 0);
+    sliceData.forEach(e => { if (e.day && dayCounts[e.day] !== undefined) dayCounts[e.day]++; });
+    const dayEntries = DAYS_ORDER.map(d => [d, dayCounts[d]]);
+
+    const slide = addContentSlide('Chat Volume by Weekday — ' + cfg.label);
+    slide.addChart(pres.charts.BAR, [{ name: 'Chats', labels: dayEntries.map(e => e[0]), values: dayEntries.map(e => e[1]) }], {
+      x: 0.5, y: 1.3, w: 12, h: 5.5, showLegend: false, barDir: 'bar',
+      chartColors: [B7], valGridLine: { color: 'E0E2E5' }, catAxisLabelFontSize: 12, catAxisLabelFontFace: '72 Brand', valAxisLabelFontFace: '72 Brand',
+      showValue: true, dataLabelFontSize: 11, dataLabelFontFace: '72 Brand', dataLabelColor: '333333'
+    });
+  });
+
+  // --- Slide: Heatmap table — Shift x Weekday per Region ---
+  SUPPORT_REGIONS.forEach(region => {
+    const slide = addContentSlide('Shift x Weekday — ' + region);
+    const tblHeader = [
+      { text: 'Shift', options: { bold: true, color: WHITE, fill: { color: B11 } } },
+      ...DAYS_ORDER.map(d => ({ text: d.substring(0, 3), options: { bold: true, color: WHITE, fill: { color: B11 }, align: 'center' } }))
+    ];
+    const tblRows = [tblHeader];
+    const regionData = data.filter(e => e.supportRegion === region);
+
+    // Find max for this region
+    let regionMax = 1;
+    SHIFTS_ORDER.forEach(s => DAYS_ORDER.forEach(d => {
+      const cnt = regionData.filter(e => e.shift === s && e.day === d).length;
+      if (cnt > regionMax) regionMax = cnt;
+    }));
+
+    SHIFTS_ORDER.forEach(shift => {
+      const row = [{ text: shift, options: { bold: true, fill: { color: 'F8FAFB' } } }];
+      DAYS_ORDER.forEach(day => {
+        const cnt = regionData.filter(e => e.shift === shift && e.day === day).length;
+        const intensity = cnt / regionMax;
+        let cellFill = 'F5F5F5';
+        if (cnt > 0) {
+          if (intensity > 0.75) cellFill = B11;
+          else if (intensity > 0.5) cellFill = B7;
+          else if (intensity > 0.25) cellFill = B6;
+          else cellFill = B2;
+        }
+        const cellColor = (intensity > 0.5 && cnt > 0) ? WHITE : '333333';
+        row.push({ text: cnt.toString(), options: { align: 'center', fill: { color: cellFill }, color: cellColor, bold: cnt > 0 } });
+      });
+      tblRows.push(row);
+    });
+
+    slide.addTable(tblRows, {
+      x: 1.5, y: 2.0, w: 10.3, fontSize: 12, fontFace: '72 Brand',
+      border: { type: 'solid', color: 'E0E2E5', pt: 0.5 },
+      colW: [2.0, 1.6, 1.6, 1.6, 1.6, 1.6],
+      rowH: [0.5, 0.7, 0.7, 0.7],
+      autoPage: false
+    });
+
+    // Add summary text
+    let busiestShift = '', busiestDay = '', maxCount = 0;
+    SHIFTS_ORDER.forEach(s => DAYS_ORDER.forEach(d => {
+      const cnt = regionData.filter(e => e.shift === s && e.day === d).length;
+      if (cnt > maxCount) { maxCount = cnt; busiestShift = s; busiestDay = d; }
+    }));
+    if (maxCount > 0) {
+      slide.addText(`Busiest: ${busiestDay} ${busiestShift} (${maxCount} chats)`, {
+        x: 1.5, y: 5.2, w: 10, h: 0.4, fontSize: 11, color: '475569', fontFace: '72 Brand', italic: true
+      });
+    }
+  });
+
   // ═══ Agent Performance ═══
   addDividerSlide('Agent\nPerformance');
 
@@ -4344,6 +4466,102 @@ function renderDashboard() {
 
   // Trend charts
   renderTrendCharts();
+  renderWeekdayCharts();
+}
+
+function renderWeekdayCharts() {
+  const data = getDashData();
+  const regionFilter = document.getElementById('dash-weekday-region')?.value || 'all';
+  const filtered = regionFilter === 'all' ? data : data.filter(e => e.supportRegion === regionFilter);
+
+  const DAYS_ORDER = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const SHIFTS_ORDER = ['Morning','Afternoon','Night'];
+  const REGIONS_LIST = ['Americas','EMEA','APJ_GCN'];
+
+  // --- Chart 1: Volume by weekday (bar chart) ---
+  const dayCount = {};
+  DAYS_ORDER.forEach(d => dayCount[d] = 0);
+  filtered.forEach(e => { if (e.day && dayCount[e.day] !== undefined) dayCount[e.day]++; });
+
+  const el = document.getElementById('dash-chart-weekday');
+  if (el) {
+    const maxVal = Math.max(...Object.values(dayCount), 1);
+    const total = filtered.length || 1;
+    el.innerHTML = DAYS_ORDER.map((day, i) => {
+      const count = dayCount[day];
+      const pct = (count / total * 100).toFixed(1);
+      const width = (count / maxVal * 100).toFixed(1);
+      const color = DASH_COLORS[i % DASH_COLORS.length];
+      return `<div class="dash-bar-row">
+        <div class="dash-bar-label" title="${day}">${day}</div>
+        <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${width}%;background:${color}"><span class="dash-bar-val">${count}</span></div></div>
+        <div class="dash-bar-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // --- Chart 2: Heatmap — Shift x Weekday per Support Region ---
+  const el2 = document.getElementById('dash-chart-shift-weekday');
+  if (!el2) return;
+
+  // Build data: region -> shift -> day -> count
+  const heatData = {};
+  REGIONS_LIST.forEach(r => {
+    heatData[r] = {};
+    SHIFTS_ORDER.forEach(s => {
+      heatData[r][s] = {};
+      DAYS_ORDER.forEach(d => heatData[r][s][d] = 0);
+    });
+  });
+  data.forEach(e => {
+    if (e.supportRegion && e.shift && e.day && heatData[e.supportRegion] && heatData[e.supportRegion][e.shift]) {
+      heatData[e.supportRegion][e.shift][e.day] = (heatData[e.supportRegion][e.shift][e.day] || 0) + 1;
+    }
+  });
+
+  // Find global max for color scaling
+  let globalMax = 1;
+  REGIONS_LIST.forEach(r => SHIFTS_ORDER.forEach(s => DAYS_ORDER.forEach(d => {
+    if (heatData[r][s][d] > globalMax) globalMax = heatData[r][s][d];
+  })));
+
+  const isDark = document.body.classList.contains('dark');
+  const cellBg = (val) => {
+    if (val === 0) return isDark ? '#2A2A2A' : '#F5F5F5';
+    const intensity = val / globalMax;
+    const r = Math.round(0 + (0 - 0) * intensity);
+    const g = Math.round(112 + (50 - 112) * intensity);
+    const b = Math.round(242 + (180 - 242) * intensity);
+    return `rgb(${r},${g},${b})`;
+  };
+  const textColor = (val) => {
+    if (val === 0) return isDark ? '#666' : '#AAA';
+    const intensity = val / globalMax;
+    return intensity > 0.4 ? '#fff' : (isDark ? '#E0E0E0' : '#1D2D3E');
+  };
+
+  let html = '<div style="display:flex;flex-direction:column;gap:20px;">';
+  REGIONS_LIST.forEach((region, ri) => {
+    html += `<div>`;
+    html += `<div style="font-weight:600;font-size:13px;margin-bottom:8px;color:${isDark ? '#E0E0E0' : '#1D2D3E'}">${region}</div>`;
+    html += `<table style="border-collapse:collapse;width:100%;font-size:12px;">`;
+    html += `<thead><tr><th style="text-align:left;padding:6px 10px;color:${isDark ? '#9E9E9E' : '#6A7A8A'};font-weight:500;width:90px;">Shift</th>`;
+    DAYS_ORDER.forEach(d => {
+      html += `<th style="text-align:center;padding:6px 8px;color:${isDark ? '#9E9E9E' : '#6A7A8A'};font-weight:500;">${d.substring(0,3)}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
+    SHIFTS_ORDER.forEach(shift => {
+      html += `<tr><td style="padding:6px 10px;font-weight:500;color:${isDark ? '#B0BEC5' : '#475569'}">${shift}</td>`;
+      DAYS_ORDER.forEach(day => {
+        const val = heatData[region][shift][day];
+        html += `<td style="text-align:center;padding:8px;background:${cellBg(val)};color:${textColor(val)};font-weight:600;border-radius:4px;border:2px solid ${isDark ? '#1D2329' : '#fff'}">${val}</td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+  });
+  html += '</div>';
+  el2.innerHTML = html;
 }
 
 function renderPieChart(elId, entries, total) {
