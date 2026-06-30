@@ -4580,5 +4580,51 @@ function renderCategoryChart(data, total) {
 }
 
 </script>
+<!-- SIMPLE UI -->
+<textarea id="noteBox" placeholder="Write something..." style="width:300px; height:100px;"></textarea>
+<br>
+<button onclick="saveNote()">Save</button>
+
+<!-- FIREBASE SCRIPT -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCR_JcPgU8xZBIgSo_r-YZ467FEygCIoMc",
+    authDomain: "live-chat-aee64.firebaseapp.com",
+    projectId: "live-chat-aee64",
+    storageBucket: "live-chat-aee64.firebasestorage.app",
+    messagingSenderId: "718126483959",
+    appId: "1:718126483959:web:c8b008635059c17c1a06f2"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // SAVE NOTE (shared)
+  async function saveNote() {
+    const text = document.getElementById("noteBox").value;
+
+    await setDoc(doc(db, "notes", "shared"), {
+      content: text,
+      updatedAt: new Date()
+    });
+  }
+
+  // REAL-TIME LISTENER
+  onSnapshot(doc(db, "notes", "shared"), (docSnap) => {
+    if (docSnap.exists()) {
+      document.getElementById("noteBox").value = docSnap.data().content;
+    }
+  });
+
+  window.saveNote = saveNote;
+</script>
 </body>
 </html>
