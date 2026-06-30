@@ -2085,7 +2085,7 @@
 // SCHEDULE DATA
 // Keys: 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri  (0/6 = weekend, no coverage)
 // ═══════════════════════════════════════════════════════════
-const REGIONS = [
+var REGIONS = [
   {
     key: 'brazil',
     label: 'Brasil',
@@ -4806,6 +4806,286 @@ function renderCategoryChart(data, total) {
     </div>`;
   }).join('');
 }
+
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FIREBASE FIRESTORE REAL-TIME SYNC LAYER (v12.15.0 Modular SDK)
+     
+     Architecture:
+     • localStorage remains the immediate read source (keeps app synchronous)
+     • Every save() also writes to Firestore
+     • onSnapshot listeners detect remote changes → update localStorage → re-render
+     • Dark mode stays localStorage-only (per-user preference, not shared)
+     
+     Firestore Data Structure:
+       /psh_live_chat/schedules_brazil   → { shifts: [...] }
+       /psh_live_chat/schedules_ireland  → { shifts: [...] }
+       /psh_live_chat/schedules_asia     → { shifts: [...] }
+       /psh_live_chat/exceptions         → { items: [...] }
+       /psh_live_chat/notes_brazil       → { items: [...] }
+       /psh_live_chat/notes_ireland      → { items: [...] }
+       /psh_live_chat/notes_asia         → { items: [...] }
+       /psh_live_chat/away_agents        → { agents: [...] }
+       /psh_live_chat/tracker_data       → { entries: [...] }
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+// ─── Firebase SDK Imports (v12.15.0 modular) ───────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+// ─── Firebase Configuration ────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCR_JcPgU8xZBIgSo_r-YZ467FEygCIoMc",
+  authDomain: "live-chat-aee64.firebaseapp.com",
+  projectId: "live-chat-aee64",
+  storageBucket: "live-chat-aee64.firebasestorage.app",
+  messagingSenderId: "718126483959",
+  appId: "1:718126483959:web:c8b008635059c17c1a06f2"
+};
+
+// ─── Initialize Firebase & Firestore ───────────────────────────────────────
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Collection name (single Firestore collection for all shared state)
+const COLLECTION = "psh_live_chat";
+
+// Helper: get a document reference
+function docRef(docId) {
+  return doc(db, COLLECTION, docId);
+}
+
+// ─── Suppress self-triggered listeners ─────────────────────────────────────
+// When WE write to Firestore, we don't want the onSnapshot callback to
+// trigger a redundant re-render. Use a simple write-stamp mechanism.
+let _lastWriteStamps = {};
+function markWrite(docId) {
+  _lastWriteStamps[docId] = Date.now();
+}
+function isOwnWrite(docId) {
+  const stamp = _lastWriteStamps[docId];
+  if (stamp && (Date.now() - stamp) < 2000) {
+    delete _lastWriteStamps[docId];
+    return true;
+  }
+  return false;
+}
+
+// ─── Firestore Write Helpers ───────────────────────────────────────────────
+async function writeToFirestore(docId, data) {
+  try {
+    markWrite(docId);
+    await setDoc(docRef(docId), data, { merge: true });
+  } catch (e) {
+    console.warn('[Firebase] Write failed for', docId, e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PATCH SAVE FUNCTIONS - Add Firestore writes alongside localStorage
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Notes ──
+const _origSaveNotes = window.saveNotes;
+window.saveNotes = function(key, notes) {
+  // Write to localStorage (original behavior)
+  _origSaveNotes(key, notes);
+  // Write to Firestore
+  writeToFirestore('notes_' + key, { items: notes });
+};
+
+// ── Exceptions ──
+const _origSaveExceptions = window.saveExceptions;
+window.saveExceptions = function(arr) {
+  _origSaveExceptions(arr);
+  writeToFirestore('exceptions', { items: arr });
+};
+
+// ── Away Agents ──
+const _origSaveAwayAgents = window.saveAwayAgents;
+window.saveAwayAgents = function(arr) {
+  _origSaveAwayAgents(arr);
+  writeToFirestore('away_agents', { agents: arr });
+};
+
+// ── Schedule ──
+const _origSaveSchedule = window.saveSchedule;
+window.saveSchedule = function(key, shifts) {
+  _origSaveSchedule(key, shifts);
+  writeToFirestore('schedules_' + key, { shifts: shifts });
+};
+
+// ── Tracker Data ──
+const _origSaveTrackerData = window.saveTrackerData;
+window.saveTrackerData = function(data) {
+  _origSaveTrackerData(data);
+  writeToFirestore('tracker_data', { entries: data });
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REAL-TIME LISTENERS (onSnapshot) - Detect remote changes and re-render
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Notes listeners (one per region) ──
+['brazil', 'ireland', 'asia'].forEach(key => {
+  onSnapshot(docRef('notes_' + key), (snapshot) => {
+    if (isOwnWrite('notes_' + key)) return;
+    if (!snapshot.exists()) return;
+    const data = snapshot.data();
+    if (data && data.items) {
+      try {
+        localStorage.setItem('psh_notes_' + key, JSON.stringify(data.items));
+      } catch(e) {}
+      // Re-render the affected region card
+      if (typeof window.rerenderCard === 'function') {
+        window.rerenderCard(key);
+      }
+    }
+  });
+});
+
+// ── Exceptions listener ──
+onSnapshot(docRef('exceptions'), (snapshot) => {
+  if (isOwnWrite('exceptions')) return;
+  if (!snapshot.exists()) return;
+  const data = snapshot.data();
+  if (data && data.items) {
+    try {
+      localStorage.setItem('psh_exc', JSON.stringify(data.items));
+    } catch(e) {}
+    // Re-render all cards since exceptions affect schedules
+    if (typeof window.fullRefresh === 'function') {
+      window.fullRefresh();
+    }
+    // Re-render exception list if panel is open
+    if (typeof window.renderExcList === 'function') {
+      window.renderExcList();
+    }
+  }
+});
+
+// ── Away Agents listener ──
+onSnapshot(docRef('away_agents'), (snapshot) => {
+  if (isOwnWrite('away_agents')) return;
+  if (!snapshot.exists()) return;
+  const data = snapshot.data();
+  if (data && data.agents) {
+    try {
+      localStorage.setItem('psh_away_agents', JSON.stringify(data.agents));
+    } catch(e) {}
+    // Re-render agent status
+    if (typeof window.renderHeaderAgents === 'function') window.renderHeaderAgents();
+    if (typeof window.renderStatusCards === 'function') window.renderStatusCards();
+    if (typeof window.renderScheduleCards === 'function') window.renderScheduleCards();
+  }
+});
+
+// ── Schedule listeners (one per region) ──
+['brazil', 'ireland', 'asia'].forEach(key => {
+  onSnapshot(docRef('schedules_' + key), (snapshot) => {
+    if (isOwnWrite('schedules_' + key)) return;
+    if (!snapshot.exists()) return;
+    const data = snapshot.data();
+    if (data && data.shifts) {
+      try {
+        localStorage.setItem('psh_sched_' + key, JSON.stringify(data.shifts));
+      } catch(e) {}
+      // Update in-memory REGIONS
+      const region = window.REGIONS ? window.REGIONS.find(r => r.key === key) : null;
+      if (region) region.shifts = data.shifts;
+      // Re-render
+      if (typeof window.fullRefresh === 'function') window.fullRefresh();
+    }
+  });
+});
+
+// ── Tracker Data listener ──
+onSnapshot(docRef('tracker_data'), (snapshot) => {
+  if (isOwnWrite('tracker_data')) return;
+  if (!snapshot.exists()) return;
+  const data = snapshot.data();
+  if (data && data.entries) {
+    try {
+      localStorage.setItem('psh_tracker_data', JSON.stringify(data.entries));
+    } catch(e) {}
+    // Re-render tracker table if visible
+    if (typeof window.renderTrackerTable === 'function') {
+      window.renderTrackerTable();
+    }
+    // Re-render dashboard if visible
+    if (typeof window.renderDashboard === 'function') {
+      window.renderDashboard();
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INITIAL SYNC: Push current localStorage data to Firestore if Firestore
+// documents don't exist yet (first user seeds the shared state)
+// ═══════════════════════════════════════════════════════════════════════════
+async function initialSync() {
+
+  // Notes
+  for (const key of ['brazil', 'ireland', 'asia']) {
+    const snap = await getDoc(docRef('notes_' + key));
+    if (!snap.exists()) {
+      const local = localStorage.getItem('psh_notes_' + key);
+      if (local) {
+        await setDoc(docRef('notes_' + key), { items: JSON.parse(local) });
+      }
+    }
+  }
+
+  // Exceptions
+  const excSnap = await getDoc(docRef('exceptions'));
+  if (!excSnap.exists()) {
+    const local = localStorage.getItem('psh_exc');
+    if (local) {
+      await setDoc(docRef('exceptions'), { items: JSON.parse(local) });
+    }
+  }
+
+  // Away Agents
+  const awaySnap = await getDoc(docRef('away_agents'));
+  if (!awaySnap.exists()) {
+    const local = localStorage.getItem('psh_away_agents');
+    if (local) {
+      await setDoc(docRef('away_agents'), { agents: JSON.parse(local) });
+    }
+  }
+
+  // Schedules
+  for (const key of ['brazil', 'ireland', 'asia']) {
+    const snap = await getDoc(docRef('schedules_' + key));
+    if (!snap.exists()) {
+      const local = localStorage.getItem('psh_sched_' + key);
+      if (local) {
+        await setDoc(docRef('schedules_' + key), { shifts: JSON.parse(local) });
+      }
+    }
+  }
+
+  // Tracker Data
+  const trackerSnap = await getDoc(docRef('tracker_data'));
+  if (!trackerSnap.exists()) {
+    const local = localStorage.getItem('psh_tracker_data');
+    if (local) {
+      await setDoc(docRef('tracker_data'), { entries: JSON.parse(local) });
+    }
+  }
+
+  console.log('[Firebase] Real-time sync active. All users will see updates instantly.');
+}
+
+// Run initial sync (non-blocking)
+initialSync().catch(e => console.warn('[Firebase] Initial sync error:', e));
 
 </script>
 </body>
